@@ -1,0 +1,67 @@
+angular.module("app", ["leaflet-directive"])
+.controller("MapCtrl", ["$scope", "$http", function ($scope, $http) {
+  $scope.center = { lat:20, lng:0, zoom:2 };
+  $scope.defaults = { tileLayer: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" };
+  $scope.selectedCountry = null;
+  $scope.highlightedLayer = null;
+  $scope.countryColors = {};
+
+  // Load color mapping JSON
+  $http.get("https://raw.githubusercontent.com/NavNomad/color.maps/main/all-countries-shaded.json")
+    .then(res => $scope.countryColors = res.data)
+    .catch(() => console.error("Failed loading colors"));
+
+  function highlightFeature(layer) {
+    if ($scope.highlightedLayer) {
+      $scope.highlightedLayer.setStyle({
+        weight:1,
+        color:"#fff",
+        fillColor: $scope.highlightedLayer.defaultFill
+      });
+    }
+    layer.defaultFill = layer.options.fillColor;
+    layer.setStyle({
+      weight: 3,
+      color: "#000",
+      fillColor: "#39e"
+    });
+    $scope.highlightedLayer = layer;
+  }
+
+  $http.get("https://s3-us-west-2.amazonaws.com/s.cdpn.io/93930/countries.geo.json?v=11")
+    .then(geo => {
+      $scope.geojson = {
+        data: geo.data,
+        style: feature => {
+          const code = feature.id;
+          const info = $scope.countryColors[code];
+          return {
+            fillColor: info?.color || "#ccc",
+            weight: 1,
+            opacity: 1,
+            color: "#fff",
+            fillOpacity: 0.7
+          };
+        },
+        onEachFeature: (feature, layer) => {
+          layer.on("click", () => {
+            highlightFeature(layer);
+            const code = feature.id;
+            $http.get(`https://restcountries.com/v3.1/alpha/${code}`)
+              .then(res => {
+                const c = res.data[0];
+                $scope.selectedCountry = {
+                  name: c.name.common,
+                  language: Object.values(c.languages || {})[0] || "Unknown",
+                  currency: Object.values(c.currencies || {})[0]?.name || "Unknown",
+                  symbol: Object.values(c.currencies || {})[0]?.symbol || ""
+                };
+              })
+              .catch(() => $scope.selectedCountry = {
+                name:"Unknown", language:"Unknown", currency:"Unknown", symbol:""
+              });
+          });
+        }
+      };
+    });
+}]);
