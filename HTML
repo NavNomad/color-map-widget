@@ -1,0 +1,24 @@
+<div ng-app="app" ng-controller="MapCtrl">
+  <!-- Leaflet Map -->
+  <leaflet center="center" defaults="defaults" geojson="geojson" style="height: 100vh;"></leaflet>
+
+  <!-- Info Box -->
+  <div class="popup-box" ng-show="selectedCountry.name">
+    <h3>{{selectedCountry.name}}</h3>
+    
+    <p>🌍 Fun Fact: {{selectedCountry.fact || 'Click a country to see a fun fact!'}}</p>
+    <p>🧭 Status: {{selectedCountry.status || 'Not yet added to your wishlist.'}}</p>
+
+    <label for="notes">📝 Your Notes:</label>
+    <textarea id="notes" ng-model="userNotes[selectedCountry.name]" placeholder="Write something..."></textarea>
+  </div>
+</div>
+<div ng-app="app" ng-controller="MapCtrl">
+  <leaflet center="center" defaults="defaults" geojson="geojson" style="height: 100vh;"></leaflet>
+
+  <div class="info-box" ng-show="selectedCountry.name">
+    <h2>{{selectedCountry.name}}</h2>
+    <p>🌐 Language: {{selectedCountry.language}}</p>
+    <p>💰 Currency: {{selectedCountry.currency}}</p>
+  </div>
+</div>
